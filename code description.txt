@@ -1,0 +1,24 @@
+	Following is the implementation of RRT Algorithm in CPP
+	defined a structure point with x,y as structure variables x: [0,100], y: [0,100], Assumed the obstacle to be a line with endpoints A(Ax,Ay),B(Bx,By).
+	
+
+	INPUT variables:-X_int:- initial point, X_goal;-goal point, A:-1st endpoint of obstacle line, B:-2nd endpoint of obstacle line
+	r:- radius of the vicinity around the X_goal, inc:- distance of new node from it's parent node, n:- No. of nodes
+	
+	Other variables:- found(bool) to check whether the point is in vicinity or not, G(map) to store key and its value as a vector consisiting of nodes connected to the key,
+	X_rand=random initialisation , X_nearest:- nearest node in graph to X_rand, X_new:- new point at a distance inc along the line X_rand-X_nearest.	
+
+
+	INPUT:-1st line takes the input of X_int(initial point) x-coordinate,y-coordinate respecively.
+	2nd line takes the input of X_goal(goal point) x-coordinate,y-coordinate respecively.
+	3rd line takes the input of the radius(double) of the vicinity of the goal.
+	4rth line takes the input of increment(double) after each step i.e. the distance b/w any 2 connected nodes | dist b/w X_new and X_nearest.
+	5th line takes the of the initial point of the obstacle line A x-coordinate,y-coordinate respecively.
+	6th line takes the of the final point of the obstacle line B x-coordinate,y-coordinate respecively. 
+	7th line takes the input of no. of nodes.
+
+	Output:-Each line prints 2 numbers x-coordinate,y-coordinate denoting the path from X_int to X_final(in vicinity of X_goal) in order only if the path is found.
+		Each point in stored in a vector<point> path.		 
+
+
+
