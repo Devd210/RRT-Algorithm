@@ -1,0 +1,149 @@
+/*	Following is the implementation of RRT Algorithm in CPP
+	defined a structure point with x,y as structure variables x: [0,100], y: [0,100], Assumed the obstacle to be a line with endpoints A(Ax,Ay),B(Bx,By).
+	INPUT:-1st line takes the input of X_int(initial point) x-coordinate,y-coordinate respecively.
+	2nd line takes the input of X_goal(goal point) x-coordinate,y-coordinate respecively.
+	3rd line takes the input of the radius(double) of the vicinity of the goal.
+	4rth line takes the input of increment(double) after each step i.e. the distance b/w any 2 connected nodes | dist b/w X_new and X_nearest.
+	5th line takes the of the initial point of the obstacle line A x-coordinate,y-coordinate respecively.
+	6th line takes the of the final point of the obstacle line B x-coordinate,y-coordinate respecively. 
+	7th line takes the input of no. of nodes.
+
+	output:-Each line prints 2 numbers denoting the path from X_int to X_final(in vicinity of X_goal) in order.
+		 
+*/
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+struct point{
+    
+    double x,y;
+    bool operator<(const point& other) const
+    {
+        return x < other.x; 
+    }
+};
+//assuming the obstacle to be a line form A(Ax,Ay)->B(Bx,By) and the plane to be of [0,100]*[0,100]
+
+bool ObstacleFree(point Xa,point Xb,point A,point B){
+    
+    double prod1=((A.x-Xa.x)*(Xb.x-Xa.x)-(A.y-Xa.y)*(Xb.y-Xa.y))*((B.x-Xa.x)*(Xb.x-Xa.x)-(B.y-Xa.y)*(Xb.y-Xa.y));
+    double prod2=((A.x-B.x)*(A.x-Xa.x)-(A.y-B.y)*(A.y-Xa.y))*((A.x-B.x)*(A.x-Xb.x)-(A.y-B.y)*(A.y-Xb.y));
+    if(prod1<0&&prod2<0)
+    return 0;
+    
+    return 1;
+}
+bool freepoint(point X,point A,point B){                	// Used to check whether X lies in Xfree or not
+    if((A.x-B.x)*(A.x-X.x)-(A.y-B.y)*(A.y-X.y)==0){     	// check whether the point is on the line 
+        if(X.x>=min(A.x,B.x)&&X.x<=max(A.x,B.x))        	// check if its between the limits of the points  
+        return 1;
+        
+    }
+    if(A.x<0||A.x>100||A.y<0||A.y>100)                  	// check if the point is in the plane
+    return 1;
+    
+    return 0;
+}
+bool goal_found(point A,point B,double r){              	//check if we have reached the vicinty of X_goal
+    double temp=pow((A.x-B.x),2)+pow((A.y-B.y),2)-r*r;
+    if(temp<=0)
+    return 1;
+    else
+    return 0;
+}
+point randomise(){                          			// random initialisation 
+	int a=rand();
+    point A;
+    //cout<<a<<endl;
+    A.x=rand()%100;
+    A.y=rand()%100;
+    //srand(a*a);
+    return A;
+}
+point nearest(point A, map<point, vector<point> >G){    	// finding nearest node of the graph to X_rand
+    double dist,dist_min=10000000;
+    point near;
+    map<point , vector<point> >::iterator it=G.begin();
+    for(;it!=G.end();it++){
+        point init=it->first;
+        dist=pow((init.x-A.x),2)+pow((init.y-A.y),2);
+        if(dist<dist_min){
+            dist_min=dist;
+            near=init;
+        }
+    }
+    return near;
+}
+point next(point A,point B,double inc){                  	// Next point from X_nearest at a distance inc from it
+    double x_inc,y_inc,d;
+    point X_next=B;
+    x_inc=A.x-B.x,y_inc=A.y-B.y;
+    d=sqrt(pow(x_inc,2)+pow(y_inc,2));
+    x_inc*=inc/d,y_inc*=inc/d;
+    X_next.x+=x_inc,X_next.y+=y_inc;
+    return X_next;
+}
+void find_path(point X,point X_final,vector<point>&A,map<point,bool>check,   // finding the path from X_int to vicinity of X_goal if vicinity is reached  
+    map<point,vector<point>>B){                                            
+    if(check.find(X)!=check.end()||(X.x==X_final.x&&X.y==X_final.y))
+    return ;
+    check[X]=1;
+    for(int i=0;i<B[X].size();i++){
+        A.push_back(B[X][i]);
+        find_path(B[X][i],X_final,A,check,B);
+        A.pop_back();
+    }
+}
+int main() {
+    bool found=0;
+    double r,inc,n;
+    map<point, vector<point> >G;   				//map key will be nodes,value will be a vector conataning points connected to the key
+    point X_int,X_goal,A,B;
+    cout<<"Enter initial points (x,y)"<<endl;
+    cin>>X_int.x>>X_int.y;
+    cout<<"Enter goal points (x,y)"<<endl;
+    cin>>X_goal.x>>X_goal.y;
+    cout<<"Enter goal radius"<<endl;
+    cin>>r;
+    cout<<"Enter the increment factor"<<endl;
+    cin>>inc;
+    cout<<"Enter the starting point of line (x,y)"<<endl;
+    cin>>A.x>>A.y;
+    cout<<"Enter the ending point of line (x,y)"<<endl;
+    cin>>B.x>>B.y;
+    cout<<"Enter the no. of nodes"<<endl;
+    cin>>n;
+    G[X_int]={};
+    //cout<<1<<endl;
+    point X_rand,X_nearest,X_new;			//X_rand:-random point, X_nearest:- Point in graph nearest to X_rand, X_new:- new point added to graph
+	for(;n>0;n--){
+        
+        X_rand=randomise();
+        
+        while(freepoint(X_rand,A,B)){     			//make sure we randomise a free point in the plane
+            X_rand=randomise();
+        }
+        
+        X_nearest=nearest(X_rand,G);     			// Finding nearest node to X_rand
+        X_new=next(X_rand,X_nearest,inc);   			// Finding the new point
+        
+        if(ObstacleFree(X_new,X_nearest,A,B)){
+            G[X_new].push_back(X_nearest);
+            G[X_nearest].push_back(X_new);
+            if(found){
+                cout<<"YES"<<endl;
+                break;
+            }
+        }
+        
+    }
+    vector<point>path={};					//storing all the points in the final path
+    map<point,bool>check;
+    find_path(X_int,X_new,path,check,G);                   	//finds the path and the vector contains it path[0] stores the starting and path.back() stores the end
+    for(int i=0;i<path.size();i++){
+	cout<<path[i].x<<" "<<path[i].y<<endl;    
+    }
+    return 0;
+}
